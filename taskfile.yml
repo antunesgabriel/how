@@ -1,0 +1,23 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  setup:
+    cmds:
+      - go mod tidy
+
+  test:
+    cmds:
+      - go test -v -failfast -race -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt ./...
+
+  lint:
+    cmds:
+      - golangci-lint run
+
+  build:
+    cmds:
+      - go build -o ./dist/how ./cmd/how

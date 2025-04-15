@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -59,7 +60,26 @@ func (m model) View() string {
 	if m.err != nil {
 		return m.err.Error()
 	}
-	str := fmt.Sprintf("\n\n   %s Loading forever... %s\n\n", m.spinner.View(), quitKeys.Help().Desc)
+
+	in := `# Hello World
+
+	This is a simple example of Markdown rendering with Glamour!
+	Check out the [other examples](https://github.com/charmbracelet/glamour/tree/master/examples) too.
+
+	Bye!
+`
+
+	out, err := glamour.Render(in, "dark")
+	if err != nil {
+		return m.err.Error()
+	}
+
+	str := fmt.Sprintf(
+		"%s\n\n   %s Loading forever... %s\n\n",
+		out,
+		m.spinner.View(),
+		quitKeys.Help().Desc,
+	)
 	if m.quitting {
 		return str + "\n"
 	}
