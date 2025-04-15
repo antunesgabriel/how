@@ -33,6 +33,8 @@ type Chat struct {
 	glam        *glamour.TermRenderer
 	spinner     spinner.Model
 	quitting    bool
+	width       int
+	height      int
 }
 
 const llmMockContent = `
@@ -127,7 +129,9 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.viewport.Width = msg.Width
 		m.textarea.SetWidth(msg.Width)
-		m.viewport.Height = msg.Height - m.textarea.Height() - lipgloss.Height(gap)
+		m.viewport.Height = msg.Height - m.textarea.Height()
+		m.width = msg.Width
+		m.height = msg.Height
 
 		if len(m.messages) > 0 {
 			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(strings.Join(m.messages, "\n")))
@@ -153,16 +157,16 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Chat) View() string {
-	// out, err := m.glam.Render(llmMockContent)
-	// if err != nil {
-	// 	return m.err.Error()
-	// }
-
-	return fmt.Sprintf(
-		"%s%s%s\n%s",
-		m.viewport.View(),
-		gap,
-		m.textarea.View(),
-		quitKeys.Help().Desc,
+	return lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
+		lipgloss.Center,
+		lipgloss.JoinHorizontal(
+			lipgloss.Center,
+			m.viewport.View(),
+			m.textarea.View(),
+			quitKeys.Help().Desc,
+		),
 	)
 }
