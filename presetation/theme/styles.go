@@ -31,6 +31,7 @@ var (
 	InputBoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(Lavender).
+			Foreground(Text).
 			Padding(0, 1).
 			MarginTop(1)
 
@@ -40,9 +41,8 @@ var (
 			Padding(0, 1)
 
 	HelpStyle = lipgloss.NewStyle().
-			Foreground(Subtext1).
-			Italic(true).
-			MarginTop(1)
+			Foreground(Overlay1).
+			Italic(true)
 
 	ErrorStyle = lipgloss.NewStyle().
 			Foreground(Red).

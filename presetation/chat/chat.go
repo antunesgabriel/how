@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Chat struct {
@@ -24,7 +25,6 @@ type Chat struct {
 	Height   int
 	Ready    bool
 
-	// Command confirmation
 	ShowConfirmation bool
 	ConfirmDialog    confirm.Model
 	ActiveCommand    *models.Command
@@ -34,11 +34,14 @@ func NewChat() (*Chat, error) {
 	ta := textarea.New()
 	ta.Placeholder = "Type your message here..."
 	ta.Focus()
-	ta.Prompt = "│ "
+	ta.Prompt = ""
 	ta.CharLimit = 1000
-	ta.SetHeight(3)
+	ta.SetHeight(2)
 	ta.ShowLineNumbers = false
-	ta.KeyMap.InsertNewline.SetEnabled(true)
+	ta.FocusedStyle.CursorLine = lipgloss.NewStyle().Blink(true)
+	ta.FocusedStyle.Placeholder = lipgloss.NewStyle().Foreground(theme.Overlay1)
+
+	ta.KeyMap.InsertNewline.SetEnabled(false)
 
 	vp := viewport.New(0, 0)
 	vp.SetContent("")

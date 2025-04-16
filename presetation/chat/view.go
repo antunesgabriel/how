@@ -16,7 +16,6 @@ func (m Chat) View() string {
 		return "Bye!\n"
 	}
 
-	// Build the main chat view
 	var mainView string
 
 	title := theme.TitleStyle.Render("How AI - Terminal Assistant")
@@ -36,7 +35,7 @@ func (m Chat) View() string {
 			m.Viewport.View(),
 			statusBar,
 			spinnerView,
-			theme.InputBoxStyle.Width(m.Width-4).Render(m.Textarea.View()),
+			theme.InputBoxStyle.Width(m.Width-6).Render(m.Textarea.View()),
 			help,
 		)
 	} else {
@@ -45,15 +44,13 @@ func (m Chat) View() string {
 			title,
 			m.Viewport.View(),
 			statusBar,
-			theme.InputBoxStyle.Width(m.Width-4).Render(m.Textarea.View()),
+			theme.InputBoxStyle.Width(m.Width-6).Render(m.Textarea.View()),
 			help,
 		)
 	}
 
-	// Final view with appropriate styling
-	view := theme.AppStyle.Width(m.Width).Height(m.Height).Render(mainView)
+	view := theme.AppStyle.Width(m.Width).Height(m.Height - 4).Render(mainView)
 
-	// If a command confirmation is being shown, overlay it on top of the chat
 	if m.ShowConfirmation && m.ActiveCommand != nil {
 		return view + "\n" + m.ConfirmDialog.View()
 	}

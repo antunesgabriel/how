@@ -18,7 +18,6 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cfCmd tea.Cmd
 	)
 
-	// If we're showing the confirmation dialog, handle its messages
 	if m.ShowConfirmation && m.ActiveCommand != nil {
 		m.ConfirmDialog.Width = m.Width
 		m.ConfirmDialog.Height = m.Height
@@ -89,7 +88,6 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			rendered = msg.Content
 		}
 
-		// Extract commands from the AI response
 		commands := parseCommands(msg.Content)
 
 		aiMessage := models.Message{
@@ -121,7 +119,6 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ShowConfirmation = false
 
 		if msg.Approved {
-			// Mark as executing in the chat
 			executingMsg := models.Message{
 				Sender:  "System",
 				Content: "Executing command: `" + msg.Command.Raw + "`",
@@ -149,12 +146,10 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case models.CommandResultMsg:
-		// Display command execution result
 		var resultContent string
 		var status string
 		var exitCode int
 
-		// Determine status and exit code
 		if msg.Error != nil {
 			status = "failed"
 			exitCode = 1
@@ -165,14 +160,12 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			resultContent = models.FormatSuccessMessage(msg.Command, msg.Output)
 		}
 
-		// Create temporary command object for status formatting
 		tmpCmd := models.Command{
 			Raw:      msg.Command,
 			Status:   status,
 			ExitCode: exitCode,
 		}
 
-		// Add status information to the result
 		resultContent += "\n\nStatus: " + tmpCmd.FormattedStatus()
 		rendered, err := m.Glam.Render(resultContent)
 		if err != nil {
