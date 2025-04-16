@@ -16,7 +16,7 @@ func (m Chat) View() string {
 
 	title := theme.TitleStyle.Width(m.Width - 4).Render("How AI")
 
-	statusText := "Press Ctrl+C to quit"
+	statusText := "Press esc or ctrl+c to quit"
 	if m.Waiting {
 		statusText = m.Spinner.View() + " Thinking..."
 	}
