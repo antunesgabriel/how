@@ -1,9 +1,7 @@
 package chat
 
 import (
-	"time"
-
-	"github.com/antunesgabriel/how-ai/presetation/mock"
+	"github.com/antunesgabriel/how-ai/presetation/confirm"
 	"github.com/antunesgabriel/how-ai/presetation/models"
 	"github.com/antunesgabriel/how-ai/presetation/theme"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -25,19 +23,11 @@ type Chat struct {
 	Width    int
 	Height   int
 	Ready    bool
-}
 
-func SimulateAIResponse() tea.Cmd {
-	return tea.Tick(time.Second*2, func(t time.Time) tea.Msg {
-		index := int(t.Unix()) % len(mock.AIResponses)
-		return models.AIResponseMsg{Content: mock.AIResponses[index]}
-	})
-}
-
-func WaitForAI() tea.Cmd {
-	return func() tea.Msg {
-		return models.WaitingMsg{}
-	}
+	// Command confirmation
+	ShowConfirmation bool
+	ConfirmDialog    confirm.Model
+	ActiveCommand    *models.Command
 }
 
 func NewChat() (*Chat, error) {
@@ -73,14 +63,19 @@ func NewChat() (*Chat, error) {
 
 	messages := []models.Message{initialMessage}
 
+	confirmDialog := confirm.New()
+
 	return &Chat{
-		Textarea: ta,
-		Messages: messages,
-		Viewport: vp,
-		Err:      nil,
-		Glam:     glam,
-		Spinner:  sp,
-		Waiting:  false,
+		Textarea:         ta,
+		Messages:         messages,
+		Viewport:         vp,
+		Err:              nil,
+		Glam:             glam,
+		Spinner:          sp,
+		Waiting:          false,
+		ShowConfirmation: false,
+		ConfirmDialog:    confirmDialog,
+		ActiveCommand:    nil,
 	}, nil
 }
 

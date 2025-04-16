@@ -15,7 +15,16 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		tiCmd tea.Cmd
 		vpCmd tea.Cmd
 		spCmd tea.Cmd
+		cfCmd tea.Cmd
 	)
+
+	// If we're showing the confirmation dialog, handle its messages
+	if m.ShowConfirmation && m.ActiveCommand != nil {
+		m.ConfirmDialog.Width = m.Width
+		m.ConfirmDialog.Height = m.Height
+		m.ConfirmDialog, cfCmd = m.ConfirmDialog.Update(msg)
+		return m, cfCmd
+	}
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -72,10 +81,6 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	case models.WaitingMsg:
-		m.Waiting = true
-		return m, nil
-
 	case models.AIResponseMsg:
 		m.Waiting = false
 
@@ -84,20 +89,105 @@ func (m Chat) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			rendered = msg.Content
 		}
 
+		// Extract commands from the AI response
+		commands := parseCommands(msg.Content)
+
 		aiMessage := models.Message{
-			Sender:  "AI",
-			Content: rendered,
-			IsAI:    true,
+			Sender:   "AI",
+			Content:  rendered,
+			IsAI:     true,
+			Commands: commands,
 		}
 		m.Messages = append(m.Messages, aiMessage)
 
 		m.updateViewportContent()
 		m.Viewport.GotoBottom()
 
+		// If there are commands, prompt for confirmation of the first one
+		if len(commands) > 0 {
+			m.ShowConfirmation = true
+			m.ActiveCommand = &commands[0]
+			m.ConfirmDialog.SetCommand(commands[0])
+			return m, nil
+		}
+
 		return m, nil
 
 	case models.ErrorMsg:
 		m.Err = msg
+		return m, nil
+
+	case models.CommandConfirmationMsg:
+		m.ShowConfirmation = false
+
+		if msg.Approved {
+			// Mark as executing in the chat
+			executingMsg := models.Message{
+				Sender:  "System",
+				Content: "Executing command: `" + msg.Command.Raw + "`",
+				IsAI:    false,
+			}
+			m.Messages = append(m.Messages, executingMsg)
+			m.updateViewportContent()
+			m.Viewport.GotoBottom()
+
+			// Execute the command
+			return m, executeCommand(msg.Command)
+		} else {
+			// Command was rejected
+			rejectedMsg := models.Message{
+				Sender:  "System",
+				Content: "Command execution cancelled.",
+				IsAI:    false,
+			}
+			m.Messages = append(m.Messages, rejectedMsg)
+			m.updateViewportContent()
+			m.Viewport.GotoBottom()
+		}
+
+		m.ActiveCommand = nil
+		return m, nil
+
+	case models.CommandResultMsg:
+		// Display command execution result
+		var resultContent string
+		var status string
+		var exitCode int
+
+		// Determine status and exit code
+		if msg.Error != nil {
+			status = "failed"
+			exitCode = 1
+			resultContent = models.FormatErrorMessage(msg.Command, msg.Error.Error(), msg.Output)
+		} else {
+			status = "success"
+			exitCode = 0
+			resultContent = models.FormatSuccessMessage(msg.Command, msg.Output)
+		}
+
+		// Create temporary command object for status formatting
+		tmpCmd := models.Command{
+			Raw:      msg.Command,
+			Status:   status,
+			ExitCode: exitCode,
+		}
+
+		// Add status information to the result
+		resultContent += "\n\nStatus: " + tmpCmd.FormattedStatus()
+		rendered, err := m.Glam.Render(resultContent)
+		if err != nil {
+			rendered = resultContent
+		}
+
+		resultMsg := models.Message{
+			Sender:  "System",
+			Content: rendered,
+			IsAI:    false,
+		}
+		m.Messages = append(m.Messages, resultMsg)
+		m.updateViewportContent()
+		m.Viewport.GotoBottom()
+
 		return m, nil
 	}
 

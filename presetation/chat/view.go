@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"fmt"
+
 	"github.com/antunesgabriel/how-ai/presetation/theme"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -11,16 +13,61 @@ func (m Chat) View() string {
 	}
 
 	if m.Quitting {
-		return "Thanks for using How AI! Goodbye!\n"
+		return "Bye!\n"
 	}
 
-	title := theme.TitleStyle.Width(m.Width - 4).Render("How AI")
+	// Build the main chat view
+	var mainView string
 
-	statusText := "Press esc or ctrl+c to quit"
+	title := theme.TitleStyle.Render("How AI - Terminal Assistant")
+
+	statusBar := ""
+	if m.Err != nil {
+		statusBar = theme.ErrorStyle.Render(m.Err.Error())
+	}
+
+	help := theme.HelpStyle.Render("Enter: Send message • Ctrl+C/Esc: Quit • y/n: Confirm command")
+
 	if m.Waiting {
-		statusText = m.Spinner.View() + " Thinking..."
+		spinnerView := fmt.Sprintf("\n  %s Thinking...", m.Spinner.View())
+		mainView = lipgloss.JoinVertical(
+			lipgloss.Left,
+			title,
+			m.Viewport.View(),
+			statusBar,
+			spinnerView,
+			theme.InputBoxStyle.Width(m.Width-4).Render(m.Textarea.View()),
+			help,
+		)
+	} else {
+		mainView = lipgloss.JoinVertical(
+			lipgloss.Left,
+			title,
+			m.Viewport.View(),
+			statusBar,
+			theme.InputBoxStyle.Width(m.Width-4).Render(m.Textarea.View()),
+			help,
+		)
 	}
-	statusBar := theme.StatusBarStyle.Width(m.Width - 4).Render(statusText)
+
+	// Final view with appropriate styling
+	view := theme.AppStyle.Width(m.Width).Height(m.Height).Render(mainView)
+
+	// If a command confirmation is being shown, overlay it on top of the chat
+	if m.ShowConfirmation && m.ActiveCommand != nil {
+		return view + "\n" + m.ConfirmDialog.View()
+	}
+
+	return view
+}
+
+func (m Chat) FullView() string {
+	title := theme.TitleStyle.Render("How AI - Terminal Assistant")
+
+	statusBar := ""
+	if m.Err != nil {
+		statusBar = theme.ErrorStyle.Render(m.Err.Error())
+	}
 
 	help := theme.HelpStyle.Render("Enter: Send message • Ctrl+C/Esc: Quit")
 

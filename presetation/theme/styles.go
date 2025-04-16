@@ -43,4 +43,9 @@ var (
 			Foreground(Subtext1).
 			Italic(true).
 			MarginTop(1)
+
+	ErrorStyle = lipgloss.NewStyle().
+			Foreground(Red).
+			Bold(true).
+			MarginTop(1)
 )

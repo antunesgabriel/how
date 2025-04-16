@@ -2,6 +2,28 @@ package theme
 
 import "github.com/charmbracelet/lipgloss"
 
+// Colors used throughout the application
+var Colors = struct {
+	Green  lipgloss.Color
+	Blue   lipgloss.Color
+	Red    lipgloss.Color
+	Cyan   lipgloss.Color
+	Gray   lipgloss.Color
+	White  lipgloss.Color
+	Black  lipgloss.Color
+	Yellow lipgloss.Color
+}{
+	Green:  lipgloss.Color("#8bd5ca"),
+	Blue:   lipgloss.Color("#89b4fa"),
+	Red:    lipgloss.Color("#f38ba8"),
+	Cyan:   lipgloss.Color("#74c7ec"),
+	Gray:   lipgloss.Color("#6c7086"),
+	White:  lipgloss.Color("#cdd6f4"),
+	Black:  lipgloss.Color("#11111b"),
+	Yellow: lipgloss.Color("#f9e2af"),
+}
+
+// Catppuccin Mocha color scheme
 var (
 	Rosewater = lipgloss.Color("#f5e0dc")
 	Flamingo  = lipgloss.Color("#f2cdcd")
