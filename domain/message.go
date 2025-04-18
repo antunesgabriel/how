@@ -1,4 +1,4 @@
-package message
+package domain
 
 type Message struct {
 	Role    string

@@ -6,8 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/antunesgabriel/how-ai/domain/agent"
-	"github.com/antunesgabriel/how-ai/domain/message"
+	"github.com/antunesgabriel/how-ai/domain"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -17,10 +16,10 @@ import (
 
 type ChatModel struct {
 	textInput      textinput.Model
-	messages       []message.Message
+	messages       []domain.Message
 	viewport       viewport.Model
 	spinner        spinner.Model
-	agent          agent.Agent
+	agent          domain.Agent
 	renderer       *glamour.TermRenderer
 	waitingForAI   bool
 	pendingCommand string
@@ -32,7 +31,7 @@ type ChatModel struct {
 	initialQuery   string
 }
 
-func NewChatModel(agent agent.Agent) *ChatModel {
+func NewChatModel(agent domain.Agent) *ChatModel {
 	ti := textinput.New()
 	ti.Placeholder = "Ask a question or type a command with 'run:' prefix..."
 	ti.Focus()
@@ -48,9 +47,9 @@ func NewChatModel(agent agent.Agent) *ChatModel {
 		glamour.WithWordWrap(80),
 	)
 
-	initialMessages := []message.Message{
+	initialMessages := []domain.Message{
 		{
-			Role:    message.RoleSystem,
+			Role:    domain.RoleSystem,
 			Content: "Welcome to Terminal AI Chat! Type a message and press Enter to chat with the AI.",
 		},
 	}
@@ -76,8 +75,8 @@ func (m *ChatModel) Init() tea.Cmd {
 	cmds := []tea.Cmd{textinput.Blink, m.spinner.Tick, m.updateViewportContent()}
 
 	if m.initialQuery != "" {
-		m.messages = append(m.messages, message.Message{
-			Role:    message.RoleUser,
+		m.messages = append(m.messages, domain.Message{
+			Role:    domain.RoleUser,
 			Content: m.initialQuery,
 		})
 
@@ -112,8 +111,8 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, m.executeCommand(m.pendingCommand)
 				}
 
-				m.messages = append(m.messages, message.Message{
-					Role:    message.RoleSystem,
+				m.messages = append(m.messages, domain.Message{
+					Role:    domain.RoleSystem,
 					Content: "Command execution canceled.",
 				})
 				return m, m.updateViewportContent()
@@ -124,8 +123,8 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			m.messages = append(m.messages, message.Message{
-				Role:    message.RoleUser,
+			m.messages = append(m.messages, domain.Message{
+				Role:    domain.RoleUser,
 				Content: input,
 			})
 
@@ -136,8 +135,8 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.textInput.SetValue("")
 				m.textInput.Placeholder = "Execute command? (y/n)"
 
-				m.messages = append(m.messages, message.Message{
-					Role:    message.RoleSystem,
+				m.messages = append(m.messages, domain.Message{
+					Role:    domain.RoleSystem,
 					Content: fmt.Sprintf("Do you want to execute: %s", CommandStyle.Render(command)),
 				})
 				return m, m.updateViewportContent()
@@ -177,15 +176,15 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case AIResponseMsg:
 		m.waitingForAI = false
-		m.messages = append(m.messages, message.Message{
-			Role:    message.RoleAssistant,
+		m.messages = append(m.messages, domain.Message{
+			Role:    domain.RoleAssistant,
 			Content: string(msg),
 		})
 		return m, m.updateViewportContent()
 
 	case CommandOutputMsg:
-		m.messages = append(m.messages, message.Message{
-			Role:    message.RoleSystem,
+		m.messages = append(m.messages, domain.Message{
+			Role:    domain.RoleSystem,
 			Content: string(msg),
 		})
 		return m, m.updateViewportContent()
@@ -268,12 +267,12 @@ func (m *ChatModel) updateViewportContent() tea.Cmd {
 
 		for _, msg := range m.messages {
 			switch msg.Role {
-			case message.RoleUser:
+			case domain.RoleUser:
 				content.WriteString(UserStyle.Render("You: ") + msg.Content + "\n\n")
-			case message.RoleAssistant:
+			case domain.RoleAssistant:
 				rendered, _ := m.renderer.Render(AssistantStyle.Render("AI: ") + msg.Content)
 				content.WriteString(rendered + "\n\n")
-			case message.RoleSystem:
+			case domain.RoleSystem:
 				content.WriteString(msg.Content + "\n\n")
 			}
 		}

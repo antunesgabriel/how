@@ -6,11 +6,11 @@ import (
 	"os"
 
 	"github.com/antunesgabriel/how-ai/config"
-	"github.com/antunesgabriel/how-ai/domain/agent"
+	"github.com/antunesgabriel/how-ai/domain"
 	openailib "github.com/sashabaranov/go-openai"
 )
 
-var _ agent.Agent = (*OpenAIAgent)(nil)
+var _ domain.Agent = (*OpenAIAgent)(nil)
 
 type OpenAIAgent struct {
 	client       *openailib.Client

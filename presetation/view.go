@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/antunesgabriel/how-ai/config"
-	"github.com/antunesgabriel/how-ai/domain/agent"
+	"github.com/antunesgabriel/how-ai/domain"
 	"github.com/antunesgabriel/how-ai/infrastructure/openai"
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
@@ -16,7 +16,7 @@ func StartApp(cfg *config.Config, initialQuery string) error {
 		return fmt.Errorf("this program requires an interactive terminal")
 	}
 
-	var llmAgent agent.Agent
+	var llmAgent domain.Agent
 	var err error
 
 	switch cfg.DefaultProvider {
