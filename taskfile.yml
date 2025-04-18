@@ -2,8 +2,7 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
+dotenv: ['.env', '{{.ENV}}/.env', '{{.HOME}}/.env']
 
 tasks:
   setup:
@@ -21,3 +20,7 @@ tasks:
   build:
     cmds:
       - go build -o ./dist/how ./cmd/how
+
+  dev:
+    cmds:
+      - go run ./cmd/how
