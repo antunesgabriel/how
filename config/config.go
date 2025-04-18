@@ -286,19 +286,16 @@ func SaveConfig(config *Config) error {
 		return err
 	}
 
-	// Validate config
 	err = config.Validate()
 	if err != nil {
 		return fmt.Errorf("invalid configuration: %w", err)
 	}
 
-	// Marshal to YAML
 	data, err := yaml.Marshal(config)
 	if err != nil {
 		return fmt.Errorf("error marshaling config: %w", err)
 	}
 
-	// Write to file
 	err = os.WriteFile(configPath, data, 0600)
 	if err != nil {
 		return fmt.Errorf("error writing config file: %w", err)
@@ -307,20 +304,17 @@ func SaveConfig(config *Config) error {
 	return nil
 }
 
-// CreateExampleConfig creates an example configuration file with all providers
 func CreateExampleConfig() error {
 	configPath := ConfigFilePath()
 	if configPath == "" {
 		return errors.New("could not determine user home directory")
 	}
 
-	// Ensure config directory exists
 	err := EnsureConfigDirExists()
 	if err != nil {
 		return err
 	}
 
-	// Check if file already exists
 	_, err = os.Stat(configPath)
 	if err == nil {
 		return fmt.Errorf("config file already exists at %s", configPath)
@@ -329,12 +323,11 @@ func CreateExampleConfig() error {
 		return fmt.Errorf("error checking config file: %w", err)
 	}
 
-	// Create example config with all providers
 	exampleConfig := Config{
 		DefaultProvider: ProviderOpenAI,
 		OpenAI: &OpenAIConfig{
 			APIKey:       "your-openai-api-key",
-			BaseURL:      "https://api.openai.com/v1", // Optional, defaults to OpenAI's API
+			BaseURL:      "https://api.openai.com/v1",
 			DefaultModel: "gpt-3.5-turbo",
 		},
 		Gemini: &GeminiConfig{
@@ -365,13 +358,11 @@ func CreateExampleConfig() error {
 		},
 	}
 
-	// Marshal to YAML
 	data, err := yaml.Marshal(&exampleConfig)
 	if err != nil {
 		return fmt.Errorf("error creating example config: %w", err)
 	}
 
-	// Write to file
 	err = os.WriteFile(configPath, data, 0600)
 	if err != nil {
 		return fmt.Errorf("error writing config file: %w", err)

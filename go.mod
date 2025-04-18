@@ -18,6 +18,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
+	github.com/cloudwego/eino v0.3.25 // indirect
 	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/gorilla/css v1.0.1 // indirect
