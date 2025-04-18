@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/antunesgabriel/how-ai/config"
 	"github.com/antunesgabriel/how-ai/domain/agent"
 	openailib "github.com/sashabaranov/go-openai"
 )
@@ -12,7 +13,8 @@ import (
 var _ agent.Agent = (*OpenAIAgent)(nil)
 
 type OpenAIAgent struct {
-	client *openailib.Client
+	client       *openailib.Client
+	defaultModel string
 }
 
 func NewOpenAIAgent() (*OpenAIAgent, error) {
@@ -23,7 +25,31 @@ func NewOpenAIAgent() (*OpenAIAgent, error) {
 
 	client := openailib.NewClient(apiKey)
 	return &OpenAIAgent{
-		client: client,
+		client:       client,
+		defaultModel: openailib.GPT3Dot5Turbo,
+	}, nil
+}
+
+func NewOpenAIAgentWithConfig(cfg *config.OpenAIConfig) (*OpenAIAgent, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("OpenAI configuration is required")
+	}
+
+	if cfg.APIKey == "" {
+		return nil, fmt.Errorf("OpenAI API key is required")
+	}
+
+	clientConfig := openailib.DefaultConfig(cfg.APIKey)
+
+	if cfg.BaseURL != "" {
+		clientConfig.BaseURL = cfg.BaseURL
+	}
+
+	client := openailib.NewClientWithConfig(clientConfig)
+
+	return &OpenAIAgent{
+		client:       client,
+		defaultModel: cfg.DefaultModel,
 	}, nil
 }
 
@@ -31,7 +57,7 @@ func (a *OpenAIAgent) GetResponse(ctx context.Context, input string) (string, er
 	resp, err := a.client.CreateChatCompletion(
 		ctx,
 		openailib.ChatCompletionRequest{
-			Model: openailib.GPT3Dot5Turbo,
+			Model: a.defaultModel,
 			Messages: []openailib.ChatCompletionMessage{
 				{
 					Role:    openailib.ChatMessageRoleUser,

@@ -29,9 +29,10 @@ type ChatModel struct {
 	ready          bool
 	width          int
 	height         int
+	initialQuery   string
 }
 
-func NewChatModel(agent agent.Agent) ChatModel {
+func NewChatModel(agent agent.Agent) *ChatModel {
 	ti := textinput.New()
 	ti.Placeholder = "Ask a question or type a command with 'run:' prefix..."
 	ti.Focus()
@@ -54,7 +55,7 @@ func NewChatModel(agent agent.Agent) ChatModel {
 		},
 	}
 
-	return ChatModel{
+	return &ChatModel{
 		textInput:    ti,
 		messages:     initialMessages,
 		spinner:      s,
@@ -67,11 +68,27 @@ func NewChatModel(agent agent.Agent) ChatModel {
 	}
 }
 
-func (m ChatModel) Init() tea.Cmd {
-	return tea.Batch(textinput.Blink, m.spinner.Tick, m.updateViewportContent())
+func (m *ChatModel) SetInitialQuery(query string) {
+	m.initialQuery = query
 }
 
-func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *ChatModel) Init() tea.Cmd {
+	cmds := []tea.Cmd{textinput.Blink, m.spinner.Tick, m.updateViewportContent()}
+
+	if m.initialQuery != "" {
+		m.messages = append(m.messages, message.Message{
+			Role:    message.RoleUser,
+			Content: m.initialQuery,
+		})
+
+		cmds = append(cmds, m.getAIResponse(m.initialQuery))
+		m.waitingForAI = true
+	}
+
+	return tea.Batch(cmds...)
+}
+
+func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		tiCmd tea.Cmd
 		vpCmd tea.Cmd
@@ -197,7 +214,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m ChatModel) View() string {
+func (m *ChatModel) View() string {
 	if !m.ready {
 		return "Initializing..."
 	}
@@ -222,7 +239,7 @@ func (m ChatModel) View() string {
 	return s
 }
 
-func (m ChatModel) getAIResponse(input string) tea.Cmd {
+func (m *ChatModel) getAIResponse(input string) tea.Cmd {
 	return func() tea.Msg {
 		response, err := m.agent.GetResponse(context.Background(), input)
 		if err != nil {
@@ -232,7 +249,7 @@ func (m ChatModel) getAIResponse(input string) tea.Cmd {
 	}
 }
 
-func (m ChatModel) executeCommand(command string) tea.Cmd {
+func (m *ChatModel) executeCommand(command string) tea.Cmd {
 	return func() tea.Msg {
 		cmd := exec.Command("sh", "-c", command)
 		output, err := cmd.CombinedOutput()
@@ -245,7 +262,7 @@ func (m ChatModel) executeCommand(command string) tea.Cmd {
 	}
 }
 
-func (m ChatModel) updateViewportContent() tea.Cmd {
+func (m *ChatModel) updateViewportContent() tea.Cmd {
 	return func() tea.Msg {
 		var content strings.Builder
 

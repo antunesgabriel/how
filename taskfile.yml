@@ -1,5 +1,3 @@
-# https://taskfile.dev
-
 version: '3'
 
 dotenv: ['.env', '{{.ENV}}/.env', '{{.HOME}}/.env']
@@ -8,6 +6,7 @@ tasks:
   setup:
     cmds:
       - go mod tidy
+      - go run ./cmd/how init
 
   test:
     cmds:
