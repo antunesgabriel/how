@@ -6,7 +6,7 @@ tasks:
   setup:
     cmds:
       - go mod tidy
-      - go run ./cmd/how init
+      - go run ./cmd/how init --local
 
   test:
     cmds:

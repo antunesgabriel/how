@@ -180,50 +180,101 @@ type Config struct {
 	Ollama          *OllamaChatModelConfig   `yaml:"ollama,omitempty"`
 }
 
+// GlobalConfigFilePath returns the path to the global configuration file
+func GlobalConfigFilePath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(homeDir, ".how", "config.yaml")
+}
+
+// GlobalConfigDirPath returns the path to the global configuration directory
+func GlobalConfigDirPath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(homeDir, ".how")
+}
+
+// LocalConfigFilePath returns the path to the local configuration file
+func LocalConfigFilePath() string {
+	return filepath.Join(".how", "config.yaml")
+}
+
+// LocalConfigDirPath returns the path to the local configuration directory
+func LocalConfigDirPath() string {
+	return ".how"
+}
+
+// ConfigFilePath returns the path to the configuration file
+// This is kept for backward compatibility
 func ConfigFilePath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(homeDir, ".how_ai", "config.yaml")
+	return GlobalConfigFilePath()
 }
 
+// ConfigDirPath returns the path to the configuration directory
+// This is kept for backward compatibility
 func ConfigDirPath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(homeDir, ".how_ai")
+	return GlobalConfigDirPath()
 }
 
+// Load loads the configuration from either the local or global configuration file
+// It first checks for a local configuration file, and if not found, falls back to the global one
 func Load() (*Config, error) {
-	configPath := ConfigFilePath()
-	if configPath == "" {
+	// First try to load from local config file
+	localConfigPath := LocalConfigFilePath()
+	_, err := os.Stat(localConfigPath)
+	if err == nil {
+		// Local config file exists, load it
+		data, err := os.ReadFile(localConfigPath)
+		if err != nil {
+			return nil, fmt.Errorf("error reading local config file: %w", err)
+		}
+
+		var config Config
+		err = yaml.Unmarshal(data, &config)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing local config file: %w", err)
+		}
+
+		err = config.Validate()
+		if err != nil {
+			return nil, fmt.Errorf("invalid local configuration: %w", err)
+		}
+
+		return &config, nil
+	}
+
+	// Fall back to global config file
+	globalConfigPath := GlobalConfigFilePath()
+	if globalConfigPath == "" {
 		return nil, errors.New("could not determine user home directory")
 	}
 
-	_, err := os.Stat(configPath)
+	_, err = os.Stat(globalConfigPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("config file not found at %s, please create it or run 'how init' to create a default config", configPath)
+			return nil, fmt.Errorf("config file not found at %s, please create it or run 'how init' to create a default config", globalConfigPath)
 		}
-		return nil, fmt.Errorf("error checking config file: %w", err)
+		return nil, fmt.Errorf("error checking global config file: %w", err)
 	}
 
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(globalConfigPath)
 	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
+		return nil, fmt.Errorf("error reading global config file: %w", err)
 	}
 
 	var config Config
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing config file: %w", err)
+		return nil, fmt.Errorf("error parsing global config file: %w", err)
 	}
 
 	err = config.Validate()
 	if err != nil {
-		return nil, fmt.Errorf("invalid configuration: %w", err)
+		return nil, fmt.Errorf("invalid global configuration: %w", err)
 	}
 
 	return &config, nil
@@ -292,8 +343,8 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func EnsureConfigDirExists() error {
-	configDir := ConfigDirPath()
+func EnsureGlobalConfigDirExists() error {
+	configDir := GlobalConfigDirPath()
 	if configDir == "" {
 		return errors.New("could not determine user home directory")
 	}
@@ -304,64 +355,48 @@ func EnsureConfigDirExists() error {
 	}
 
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("error checking config directory: %w", err)
+		return fmt.Errorf("error checking global config directory: %w", err)
 	}
 
 	err = os.MkdirAll(configDir, 0755)
 	if err != nil {
-		return fmt.Errorf("error creating config directory: %w", err)
+		return fmt.Errorf("error creating global config directory: %w", err)
 	}
 
 	return nil
 }
 
-func CreateDefaultConfig() error {
-	configPath := ConfigFilePath()
-	if configPath == "" {
-		return errors.New("could not determine user home directory")
-	}
+func EnsureLocalConfigDirExists() error {
+	configDir := LocalConfigDirPath()
 
-	err := EnsureConfigDirExists()
-	if err != nil {
-		return err
-	}
-
-	_, err = os.Stat(configPath)
+	_, err := os.Stat(configDir)
 	if err == nil {
-		return fmt.Errorf("config file already exists at %s", configPath)
+		return nil
 	}
+
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("error checking config file: %w", err)
+		return fmt.Errorf("error checking local config directory: %w", err)
 	}
 
-	defaultConfig := Config{
-		DefaultProvider: ProviderOpenAI,
-		OpenAI: &OpenAIChatModelConfig{
-			APIKey: "your-openai-api-key",
-			Model:  "gpt-4o",
-		},
-	}
-
-	data, err := yaml.Marshal(&defaultConfig)
+	err = os.MkdirAll(configDir, 0755)
 	if err != nil {
-		return fmt.Errorf("error creating default config: %w", err)
-	}
-
-	err = os.WriteFile(configPath, data, 0600)
-	if err != nil {
-		return fmt.Errorf("error writing config file: %w", err)
+		return fmt.Errorf("error creating local config directory: %w", err)
 	}
 
 	return nil
 }
 
-func SaveConfig(config *Config) error {
-	configPath := ConfigFilePath()
+func EnsureConfigDirExists() error {
+	return EnsureGlobalConfigDirExists()
+}
+
+func SaveGlobalConfig(config *Config) error {
+	configPath := GlobalConfigFilePath()
 	if configPath == "" {
 		return errors.New("could not determine user home directory")
 	}
 
-	err := EnsureConfigDirExists()
+	err := EnsureGlobalConfigDirExists()
 	if err != nil {
 		return err
 	}
@@ -378,29 +413,59 @@ func SaveConfig(config *Config) error {
 
 	err = os.WriteFile(configPath, data, 0600)
 	if err != nil {
-		return fmt.Errorf("error writing config file: %w", err)
+		return fmt.Errorf("error writing global config file: %w", err)
 	}
 
 	return nil
 }
 
-func CreateExampleConfig() error {
-	configPath := ConfigFilePath()
+func SaveLocalConfig(config *Config) error {
+	configPath := LocalConfigFilePath()
+
+	err := EnsureLocalConfigDirExists()
+	if err != nil {
+		return err
+	}
+
+	err = config.Validate()
+	if err != nil {
+		return fmt.Errorf("invalid configuration: %w", err)
+	}
+
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("error marshaling config: %w", err)
+	}
+
+	err = os.WriteFile(configPath, data, 0600)
+	if err != nil {
+		return fmt.Errorf("error writing local config file: %w", err)
+	}
+
+	return nil
+}
+
+func SaveConfig(config *Config) error {
+	return SaveGlobalConfig(config)
+}
+
+func CreateGlobalExampleConfig() error {
+	configPath := GlobalConfigFilePath()
 	if configPath == "" {
 		return errors.New("could not determine user home directory")
 	}
 
-	err := EnsureConfigDirExists()
+	err := EnsureGlobalConfigDirExists()
 	if err != nil {
 		return err
 	}
 
 	_, err = os.Stat(configPath)
 	if err == nil {
-		return fmt.Errorf("config file already exists at %s", configPath)
+		return fmt.Errorf("global config file already exists at %s", configPath)
 	}
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("error checking config file: %w", err)
+		return fmt.Errorf("error checking global config file: %w", err)
 	}
 
 	// Default timeout values in milliseconds
@@ -466,8 +531,97 @@ func CreateExampleConfig() error {
 
 	err = os.WriteFile(configPath, []byte(yamlWithComments), 0600)
 	if err != nil {
-		return fmt.Errorf("error writing config file: %w", err)
+		return fmt.Errorf("error writing global config file: %w", err)
 	}
 
 	return nil
+}
+
+func CreateLocalExampleConfig() error {
+	configPath := LocalConfigFilePath()
+
+	err := EnsureLocalConfigDirExists()
+	if err != nil {
+		return err
+	}
+
+	_, err = os.Stat(configPath)
+	if err == nil {
+		return fmt.Errorf("local config file already exists at %s", configPath)
+	}
+	if !os.IsNotExist(err) {
+		return fmt.Errorf("error checking local config file: %w", err)
+	}
+
+	// Default timeout values in milliseconds
+	defaultTimeout := 30000  // 30 seconds
+	deepseekTimeout := 60000 // 1 minute
+
+	// Create example config with helpful comments
+	exampleConfig := Config{
+		DefaultProvider: ProviderOpenAI,
+		OpenAI: &OpenAIChatModelConfig{
+			APIKey:    "your-openai-api-key",
+			BaseURL:   "https://api.openai.com/v1", // Optional: Default OpenAI API endpoint
+			Model:     "gpt-4o",                    // Default model
+			Timeout:   defaultTimeout,              // Optional: 30 seconds timeout
+			ByAzure:   false,                       // Set to true if using Azure OpenAI
+			MaxTokens: nil,                         // Optional: Use model's default max tokens
+		},
+		Gemini: &GeminiConfig{
+			APIKey:    "your-gemini-api-key",
+			Model:     "gemini-pro", // Other options: gemini-pro-vision, gemini-1.5-flash
+			MaxTokens: nil,          // Optional: Use model's default max tokens
+		},
+		Claude: &ClaudeConfig{
+			APIKey:    "your-anthropic-api-key",
+			Model:     "claude-3-opus-20240229",
+			MaxTokens: 2000, // Required: Example for medium-length responses
+			// Bedrock configuration (optional, only if using AWS Bedrock)
+			ByBedrock:       false,
+			AccessKey:       "",
+			SecretAccessKey: "",
+			Region:          "",
+		},
+		Deepseek: &DeepseekChatModelConfig{
+			APIKey:    "your-deepseek-api-key",
+			BaseURL:   "https://api.deepseek.com/", // Optional: Default Deepseek API endpoint
+			Model:     "deepseek-coder",            // Default model for coding tasks
+			Timeout:   deepseekTimeout,             // Optional: 1 minute timeout
+			MaxTokens: 4096,                        // Optional: Default is 4096
+		},
+		Ollama: &OllamaChatModelConfig{
+			BaseURL: "http://localhost:11434", // Default Ollama server URL
+			Model:   "llama3",                 // Choose your locally available model
+			Timeout: defaultTimeout,           // Optional: 30 seconds timeout
+		},
+	}
+
+	data, err := yaml.Marshal(&exampleConfig)
+	if err != nil {
+		return fmt.Errorf("error creating example config: %w", err)
+	}
+
+	// Add a header comment to the YAML file
+	yamlWithComments := "# How AI Configuration File (Local)\n" +
+		"# This file configures the AI providers for the How AI CLI tool\n" +
+		"# Generated with 'how init --local' command\n" +
+		"# \n" +
+		"# Available providers: openai, gemini, claude, deepseek, ollama\n" +
+		"# Set default_provider to one of these values\n" +
+		"# \n" +
+		"# Timeout values are in milliseconds (1000ms = 1 second)\n" +
+		"# \n\n" +
+		string(data)
+
+	err = os.WriteFile(configPath, []byte(yamlWithComments), 0600)
+	if err != nil {
+		return fmt.Errorf("error writing local config file: %w", err)
+	}
+
+	return nil
+}
+
+func CreateExampleConfig() error {
+	return CreateGlobalExampleConfig()
 }

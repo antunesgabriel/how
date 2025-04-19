@@ -14,20 +14,18 @@ func main() {
 		cmd := os.Args[1]
 
 		if cmd == "init" {
-			if err := handleInit(); err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
+			isLocal := false
+			for _, arg := range os.Args[2:] {
+				if arg == "--local" {
+					isLocal = true
+					break
+				}
 			}
-			return
-		}
 
-		if cmd == "example" {
-			if err := config.CreateExampleConfig(); err != nil {
+			if err := handleInit(isLocal); err != nil {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)
 			}
-			fmt.Printf("Example configuration created at %s\n", config.ConfigFilePath())
-			fmt.Println("Please edit this file with your API keys and preferences.")
 			return
 		}
 
@@ -45,8 +43,18 @@ func main() {
 	}
 }
 
-func handleInit() error {
-	configPath := config.ConfigFilePath()
+func handleInit(isLocal bool) error {
+	var configPath string
+	var createConfigFunc func() error
+
+	if isLocal {
+		configPath = config.LocalConfigFilePath()
+		createConfigFunc = config.CreateLocalExampleConfig
+	} else {
+		configPath = config.GlobalConfigFilePath()
+		createConfigFunc = config.CreateGlobalExampleConfig
+	}
+
 	_, err := os.Stat(configPath)
 	if err == nil {
 		fmt.Printf("Configuration file already exists at %s\n", configPath)
@@ -54,7 +62,7 @@ func handleInit() error {
 		return nil
 	}
 
-	if err := config.CreateDefaultConfig(); err != nil {
+	if err := createConfigFunc(); err != nil {
 		return err
 	}
 
