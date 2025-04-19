@@ -256,7 +256,10 @@ func Load() (*Config, error) {
 	_, err = os.Stat(globalConfigPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("config file not found at %s, please create it or run 'how init' to create a default config", globalConfigPath)
+			return nil, fmt.Errorf(
+				"config file not found at %s, please create it or run 'how init' to create a default config",
+				globalConfigPath,
+			)
 		}
 		return nil, fmt.Errorf("error checking global config file: %w", err)
 	}
@@ -318,7 +321,9 @@ func (c *Config) Validate() error {
 		}
 	case ProviderDeepseek:
 		if c.Deepseek == nil {
-			return errors.New("deepseek configuration is required when default_provider is deepseek")
+			return errors.New(
+				"deepseek configuration is required when default_provider is deepseek",
+			)
 		}
 		if c.Deepseek.APIKey == "" {
 			return errors.New("deepseek.api_key is required")
@@ -490,7 +495,7 @@ func CreateGlobalExampleConfig() error {
 		},
 		Claude: &ClaudeConfig{
 			APIKey:    "your-anthropic-api-key",
-			Model:     "claude-3-opus-20240229",
+			Model:     "claude-3-7-sonnet-latest",
 			MaxTokens: 2000, // Required: Example for medium-length responses
 			// Bedrock configuration (optional, only if using AWS Bedrock)
 			ByBedrock:       false,
@@ -575,7 +580,7 @@ func CreateLocalExampleConfig() error {
 		},
 		Claude: &ClaudeConfig{
 			APIKey:    "your-anthropic-api-key",
-			Model:     "claude-3-opus-20240229",
+			Model:     "claude-3-7-sonnet-latest",
 			MaxTokens: 2000, // Required: Example for medium-length responses
 			// Bedrock configuration (optional, only if using AWS Bedrock)
 			ByBedrock:       false,

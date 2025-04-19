@@ -56,12 +56,12 @@ The following AI providers are supported:
 default_provider: openai
 openai:
   api_key: "your-openai-api-key"
-  model: "gpt-4o"  # or any other OpenAI model
-  timeout: 30000   # optional, in milliseconds (30 seconds)
+  model: "gpt-4o" # or any other OpenAI model
+  timeout: 30000 # optional, in milliseconds (30 seconds)
   # Azure OpenAI specific settings (optional)
   by_azure: false
-  base_url: ""     # required for Azure: https://{YOUR_RESOURCE_NAME}.openai.azure.com
-  api_version: ""  # required for Azure
+  base_url: "" # required for Azure: https://{YOUR_RESOURCE_NAME}.openai.azure.com
+  api_version: "" # required for Azure
 ```
 
 #### Claude (Anthropic)
@@ -70,8 +70,8 @@ openai:
 default_provider: claude
 claude:
   api_key: "your-anthropic-api-key"
-  model: "claude-3-opus-20240229"  # or any other Claude model
-  max_tokens: 2000  # required
+  model: "claude-3-7-sonnet-latest" # or any other Claude model
+  max_tokens: 2000 # required
   # AWS Bedrock specific settings (optional)
   by_bedrock: false
   access_key: ""
@@ -85,7 +85,7 @@ claude:
 default_provider: gemini
 gemini:
   api_key: "your-gemini-api-key"
-  model: "gemini-pro"  # or gemini-pro-vision, gemini-1.5-flash, etc.
+  model: "gemini-pro" # or gemini-pro-vision, gemini-1.5-flash, etc.
 ```
 
 #### Deepseek
@@ -94,9 +94,9 @@ gemini:
 default_provider: deepseek
 deepseek:
   api_key: "your-deepseek-api-key"
-  model: "deepseek-coder"  # or other Deepseek models
-  timeout: 60000  # optional, in milliseconds (1 minute)
-  base_url: "https://api.deepseek.com/"  # optional
+  model: "deepseek-coder" # or other Deepseek models
+  timeout: 60000 # optional, in milliseconds (1 minute)
+  base_url: "https://api.deepseek.com/" # optional
 ```
 
 #### Ollama (Local Models)
@@ -104,9 +104,9 @@ deepseek:
 ```yaml
 default_provider: ollama
 ollama:
-  base_url: "http://localhost:11434"  # URL to your Ollama server
-  model: "llama3"  # or any other model you have installed
-  timeout: 30000  # optional, in milliseconds (30 seconds)
+  base_url: "http://localhost:11434" # URL to your Ollama server
+  model: "llama3" # or any other model you have installed
+  timeout: 30000 # optional, in milliseconds (30 seconds)
 ```
 
 ### Configuration Priority
@@ -114,7 +114,7 @@ ollama:
 When running the How AI CLI, it will:
 
 1. First check for a local configuration file (`./.how/config.yaml`)
-2. If no local configuration is found, use the global configuration (`~/.how/config.yaml`)
-3. If no configuration is found at all, prompt you to create one with `how init`
+1. If no local configuration is found, use the global configuration (`~/.how/config.yaml`)
+1. If no configuration is found at all, prompt you to create one with `how init`
 
 This allows you to have different settings for different projects while maintaining a global default.
