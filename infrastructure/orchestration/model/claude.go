@@ -9,7 +9,7 @@ import (
 	"github.com/antunesgabriel/how/config"
 )
 
-func NewAnthropicModel(
+func NewClaudeModel(
 	ctx context.Context,
 	cfg *config.Config,
 ) (einomodel.ToolCallingChatModel, error) {

@@ -1,6 +1,8 @@
-package einoagent
+package agent
 
-import "github.com/cloudwego/eino/schema"
+import (
+	"github.com/cloudwego/eino/schema"
+)
 
 type UserMessage struct {
 	ID      string            `json:"id"`

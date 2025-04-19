@@ -1,39 +1,28 @@
 package main
 
 import (
-	"flag"
+	"context"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
 
+	einomodel "github.com/cloudwego/eino/components/model"
+
 	"github.com/antunesgabriel/how/config"
+	"github.com/antunesgabriel/how/infrastructure/orchestration/agent"
+	llmodel "github.com/antunesgabriel/how/infrastructure/orchestration/model"
 	"github.com/antunesgabriel/how/presetation"
 )
 
 var (
-	provider string
-	model    string
+	provider = "" // Provider to use. Exe: openai, claude, gemini, deepseek, ollama
+	model    = "" // Provider model to use. Exe: gpt-4o, gpt-3.5-turbo, etc.
 )
 
-func init() {
-	flag.StringVar(
-		&provider,
-		"provider",
-		"",
-		"Provider to use. Exe: openai, claude, gemini, deepseek, ollama",
-	)
-	flag.StringVar(
-		&model,
-		"model",
-		"",
-		"Provider model to use. Exe: gpt-4o, gpt-3.5-turbo, etc.",
-	)
-
-	flag.Parse()
-}
-
 func main() {
+	ctx := context.Background()
+
 	if len(os.Args) > 1 {
 		cmd := os.Args[1]
 
@@ -48,14 +37,14 @@ func main() {
 		}
 
 		query := strings.Join(os.Args[1:], " ")
-		if err := startApp(query); err != nil {
+		if err := startApp(ctx, query); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 		return
 	}
 
-	if err := startApp(""); err != nil {
+	if err := startApp(ctx, ""); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -89,7 +78,7 @@ func handleInit(isLocal bool) error {
 	return nil
 }
 
-func startApp(query string) error {
+func startApp(ctx context.Context, query string) error {
 	cfg, err := config.Load(provider, model)
 	if err != nil {
 		if strings.Contains(err.Error(), "config file not found") {
@@ -100,7 +89,25 @@ func startApp(query string) error {
 		return err
 	}
 
-	if err := presetation.StartApp(cfg, query); err != nil {
+	var chatModel einomodel.ToolCallingChatModel
+
+	switch cfg.DefaultProvider {
+	case config.ProviderOpenAI:
+		chatModel, err = llmodel.NewOpenAIModel(ctx, cfg)
+	case config.ProviderGemini:
+		chatModel, err = llmodel.NewGeminiModel(ctx, cfg)
+	case config.ProviderClaude:
+		chatModel, err = llmodel.NewClaudeModel(ctx, cfg)
+	case config.ProviderDeepseek:
+		chatModel, err = llmodel.NewDeepseekModel(ctx, cfg)
+	case config.ProviderOllama:
+		chatModel, err = llmodel.NewOllamaModel(ctx, cfg)
+	default:
+		return fmt.Errorf("unsupported provider: %s", cfg.DefaultProvider)
+	}
+
+	llmAgent, err := agent.NewAgent(chatModel)
+	if err := presetation.StartApp(llmAgent, query); err != nil {
 		return err
 	}
 
