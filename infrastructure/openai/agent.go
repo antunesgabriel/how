@@ -30,7 +30,7 @@ func NewOpenAIAgent() (*OpenAIAgent, error) {
 	}, nil
 }
 
-func NewOpenAIAgentWithConfig(cfg *config.OpenAIConfig) (*OpenAIAgent, error) {
+func NewOpenAIAgentWithConfig(cfg *config.OpenAIChatModelConfig) (*OpenAIAgent, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("OpenAI configuration is required")
 	}
@@ -49,7 +49,7 @@ func NewOpenAIAgentWithConfig(cfg *config.OpenAIConfig) (*OpenAIAgent, error) {
 
 	return &OpenAIAgent{
 		client:       client,
-		defaultModel: cfg.DefaultModel,
+		defaultModel: cfg.Model,
 	}, nil
 }
 

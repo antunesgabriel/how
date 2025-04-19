@@ -10,10 +10,15 @@ import (
 )
 
 func NewOllamaModel(ctx context.Context, cfg *config.Config) (einomodel.ToolCallingChatModel, error) {
+	timeout := 30 * time.Second
+	if cfg.Ollama.Timeout > 0 {
+		timeout = time.Duration(cfg.Ollama.Timeout) * time.Millisecond
+	}
+
 	modelCfg := ollama.ChatModelConfig{
 		BaseURL: cfg.Ollama.BaseURL,
-		Timeout: 30 * time.Second,
-		Model:   cfg.Ollama.DefaultModel,
+		Timeout: timeout,
+		Model:   cfg.Ollama.Model,
 	}
 
 	cm, err := ollama.NewChatModel(ctx, &modelCfg)

@@ -22,6 +22,18 @@ func StartApp(cfg *config.Config, initialQuery string) error {
 	switch cfg.DefaultProvider {
 	case config.ProviderOpenAI:
 		llmAgent, err = openai.NewOpenAIAgentWithConfig(cfg.OpenAI)
+	case config.ProviderGemini:
+		// TODO: Implement Gemini agent when available
+		return fmt.Errorf("gemini provider not yet implemented")
+	case config.ProviderClaude:
+		// TODO: Implement Claude agent when available
+		return fmt.Errorf("claude provider not yet implemented")
+	case config.ProviderDeepseek:
+		// TODO: Implement Deepseek agent when available
+		return fmt.Errorf("deepseek provider not yet implemented")
+	case config.ProviderOllama:
+		// TODO: Implement Ollama agent when available
+		return fmt.Errorf("ollama provider not yet implemented")
 	default:
 		return fmt.Errorf("unsupported provider: %s", cfg.DefaultProvider)
 	}
