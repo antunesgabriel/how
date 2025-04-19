@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/antunesgabriel/how/config"
@@ -14,13 +15,7 @@ func main() {
 		cmd := os.Args[1]
 
 		if cmd == "init" {
-			isLocal := false
-			for _, arg := range os.Args[2:] {
-				if arg == "--local" {
-					isLocal = true
-					break
-				}
-			}
+			isLocal := slices.Contains(os.Args[2:], "--local")
 
 			if err := handleInit(isLocal); err != nil {
 				fmt.Printf("Error: %v\n", err)
