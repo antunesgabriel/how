@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/antunesgabriel/how-ai/config"
-	"github.com/antunesgabriel/how-ai/domain"
-	"github.com/antunesgabriel/how-ai/infrastructure/openai"
+	"github.com/antunesgabriel/how/config"
+	"github.com/antunesgabriel/how/domain"
+	"github.com/antunesgabriel/how/infrastructure/openai"
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
 )

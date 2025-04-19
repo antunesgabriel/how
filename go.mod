@@ -1,4 +1,4 @@
-module github.com/antunesgabriel/how-ai
+module github.com/antunesgabriel/how
 
 go 1.24.0
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/antunesgabriel/how-ai/config"
+	"github.com/antunesgabriel/how/config"
 	"github.com/cloudwego/eino-ext/components/model/ollama"
 	einomodel "github.com/cloudwego/eino/components/model"
 )

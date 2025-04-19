@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/antunesgabriel/how-ai/config"
-	"github.com/antunesgabriel/how-ai/presetation"
+	"github.com/antunesgabriel/how/config"
+	"github.com/antunesgabriel/how/presetation"
 )
 
 func main() {

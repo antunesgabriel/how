@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/antunesgabriel/how-ai/config"
+	"github.com/antunesgabriel/how/config"
 	einomodel "github.com/cloudwego/eino/components/model"
 )
 

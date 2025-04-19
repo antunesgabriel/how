@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/antunesgabriel/how-ai/config"
-	"github.com/antunesgabriel/how-ai/domain"
+	"github.com/antunesgabriel/how/config"
+	"github.com/antunesgabriel/how/domain"
 	openailib "github.com/sashabaranov/go-openai"
 )
 
