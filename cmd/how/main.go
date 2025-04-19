@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"slices"
@@ -9,6 +10,28 @@ import (
 	"github.com/antunesgabriel/how/config"
 	"github.com/antunesgabriel/how/presetation"
 )
+
+var (
+	provider string
+	model    string
+)
+
+func init() {
+	flag.StringVar(
+		&provider,
+		"provider",
+		"",
+		"Provider to use. Exe: openai, claude, gemini, deepseek, ollama",
+	)
+	flag.StringVar(
+		&model,
+		"model",
+		"",
+		"Provider model to use. Exe: gpt-4o, gpt-3.5-turbo, etc.",
+	)
+
+	flag.Parse()
+}
 
 func main() {
 	if len(os.Args) > 1 {
@@ -67,7 +90,7 @@ func handleInit(isLocal bool) error {
 }
 
 func startApp(query string) error {
-	cfg, err := config.Load()
+	cfg, err := config.Load(provider, model)
 	if err != nil {
 		if strings.Contains(err.Error(), "config file not found") {
 			fmt.Println("Configuration file not found.")

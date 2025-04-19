@@ -222,7 +222,7 @@ func ConfigDirPath() string {
 
 // Load loads the configuration from either the local or global configuration file
 // It first checks for a local configuration file, and if not found, falls back to the global one
-func Load() (*Config, error) {
+func Load(provider, model string) (*Config, error) {
 	// First try to load from local config file
 	localConfigPath := LocalConfigFilePath()
 	_, err := os.Stat(localConfigPath)
@@ -239,7 +239,11 @@ func Load() (*Config, error) {
 			return nil, fmt.Errorf("error parsing local config file: %w", err)
 		}
 
-		err = config.Validate()
+		if provider != "" {
+			config.DefaultProvider = Provider(provider)
+		}
+
+		err = config.Validate(model)
 		if err != nil {
 			return nil, fmt.Errorf("invalid local configuration: %w", err)
 		}
@@ -275,7 +279,11 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("error parsing global config file: %w", err)
 	}
 
-	err = config.Validate()
+	if provider != "" {
+		config.DefaultProvider = Provider(provider)
+	}
+
+	err = config.Validate(model)
 	if err != nil {
 		return nil, fmt.Errorf("invalid global configuration: %w", err)
 	}
@@ -283,13 +291,17 @@ func Load() (*Config, error) {
 	return &config, nil
 }
 
-func (c *Config) Validate() error {
+func (c *Config) Validate(currentModel string) error {
 	if c.DefaultProvider == "" {
 		return errors.New("default_provider is required")
 	}
 
 	switch c.DefaultProvider {
 	case ProviderOpenAI:
+		if currentModel != "" {
+			c.OpenAI.Model = currentModel
+		}
+
 		if c.OpenAI == nil {
 			return errors.New("openai configuration is required when default_provider is openai")
 		}
@@ -300,6 +312,10 @@ func (c *Config) Validate() error {
 			return errors.New("openai.model is required")
 		}
 	case ProviderGemini:
+		if currentModel != "" {
+			c.Gemini.Model = currentModel
+		}
+
 		if c.Gemini == nil {
 			return errors.New("gemini configuration is required when default_provider is gemini")
 		}
@@ -310,6 +326,10 @@ func (c *Config) Validate() error {
 			return errors.New("gemini.model is required")
 		}
 	case ProviderClaude:
+		if currentModel != "" {
+			c.Claude.Model = currentModel
+		}
+
 		if c.Claude == nil {
 			return errors.New("claude configuration is required when default_provider is claude")
 		}
@@ -320,6 +340,10 @@ func (c *Config) Validate() error {
 			return errors.New("claude.model is required")
 		}
 	case ProviderDeepseek:
+		if currentModel != "" {
+			c.Deepseek.Model = currentModel
+		}
+
 		if c.Deepseek == nil {
 			return errors.New(
 				"deepseek configuration is required when default_provider is deepseek",
@@ -332,6 +356,10 @@ func (c *Config) Validate() error {
 			return errors.New("deepseek.model is required")
 		}
 	case ProviderOllama:
+		if currentModel != "" {
+			c.Ollama.Model = currentModel
+		}
+
 		if c.Ollama == nil {
 			return errors.New("ollama configuration is required when default_provider is ollama")
 		}
@@ -393,65 +421,6 @@ func EnsureLocalConfigDirExists() error {
 
 func EnsureConfigDirExists() error {
 	return EnsureGlobalConfigDirExists()
-}
-
-func SaveGlobalConfig(config *Config) error {
-	configPath := GlobalConfigFilePath()
-	if configPath == "" {
-		return errors.New("could not determine user home directory")
-	}
-
-	err := EnsureGlobalConfigDirExists()
-	if err != nil {
-		return err
-	}
-
-	err = config.Validate()
-	if err != nil {
-		return fmt.Errorf("invalid configuration: %w", err)
-	}
-
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return fmt.Errorf("error marshaling config: %w", err)
-	}
-
-	err = os.WriteFile(configPath, data, 0600)
-	if err != nil {
-		return fmt.Errorf("error writing global config file: %w", err)
-	}
-
-	return nil
-}
-
-func SaveLocalConfig(config *Config) error {
-	configPath := LocalConfigFilePath()
-
-	err := EnsureLocalConfigDirExists()
-	if err != nil {
-		return err
-	}
-
-	err = config.Validate()
-	if err != nil {
-		return fmt.Errorf("invalid configuration: %w", err)
-	}
-
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return fmt.Errorf("error marshaling config: %w", err)
-	}
-
-	err = os.WriteFile(configPath, data, 0600)
-	if err != nil {
-		return fmt.Errorf("error writing local config file: %w", err)
-	}
-
-	return nil
-}
-
-func SaveConfig(config *Config) error {
-	return SaveGlobalConfig(config)
 }
 
 func CreateGlobalExampleConfig() error {

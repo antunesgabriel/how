@@ -3,12 +3,16 @@ package model
 import (
 	"context"
 
-	"github.com/antunesgabriel/how/config"
 	"github.com/cloudwego/eino-ext/components/model/claude"
 	einomodel "github.com/cloudwego/eino/components/model"
+
+	"github.com/antunesgabriel/how/config"
 )
 
-func NewAnthropicModel(ctx context.Context, cfg *config.Config) (einomodel.ToolCallingChatModel, error) {
+func NewAnthropicModel(
+	ctx context.Context,
+	cfg *config.Config,
+) (einomodel.ToolCallingChatModel, error) {
 	modelCfg := claude.Config{
 		APIKey:    cfg.Claude.APIKey,
 		Model:     cfg.Claude.Model,
