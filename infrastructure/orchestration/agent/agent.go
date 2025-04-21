@@ -18,7 +18,7 @@ func (a *Agent) GetResponse(ctx context.Context, input string) (string, error) {
 	messages := []*schema.Message{
 		{
 			Role:    schema.System,
-			Content: "You are a helpful assistant.",
+			Content: "You are an expert in shell commands and terminal operations. Your task is to provide detailed, accurate explanations of shell commands that users are considering executing. Break down each part of the command, explain what it does, identify any potential risks or side effects, and explain why someone might want to run it. Be specific about what files or systems will be affected. If the command could potentially be harmful, make sure to clearly highlight those risks.",
 		},
 		{
 			Role:    schema.User,

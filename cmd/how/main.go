@@ -106,7 +106,7 @@ func startApp(ctx context.Context, query string) error {
 		return fmt.Errorf("unsupported provider: %s", cfg.DefaultProvider)
 	}
 
-	llmAgent, err := agent.NewAgent(chatModel)
+	llmAgent, err := agent.NewAgent(ctx, chatModel)
 	if err := presetation.StartApp(llmAgent, query); err != nil {
 		return err
 	}
