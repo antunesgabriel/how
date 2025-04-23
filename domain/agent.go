@@ -5,5 +5,5 @@ import (
 )
 
 type Agent interface {
-	GetResponse(ctx context.Context, input string) (string, error)
+	GetResponse(ctx context.Context, messages []Message) (string, error)
 }

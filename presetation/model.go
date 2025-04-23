@@ -6,12 +6,13 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/antunesgabriel/how/domain"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+
+	"github.com/antunesgabriel/how/domain"
 )
 
 type ChatModel struct {
@@ -80,7 +81,7 @@ func (m *ChatModel) Init() tea.Cmd {
 			Content: m.initialQuery,
 		})
 
-		cmds = append(cmds, m.getAIResponse(m.initialQuery))
+		cmds = append(cmds, m.getAIResponse())
 		m.waitingForAI = true
 	}
 
@@ -146,7 +147,7 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.waitingForAI = true
 
 			cmds = append(cmds, m.updateViewportContent())
-			cmds = append(cmds, m.getAIResponse(input))
+			cmds = append(cmds, m.getAIResponse())
 
 			return m, tea.Batch(cmds...)
 		}
@@ -238,12 +239,13 @@ func (m *ChatModel) View() string {
 	return s
 }
 
-func (m *ChatModel) getAIResponse(input string) tea.Cmd {
+func (m *ChatModel) getAIResponse() tea.Cmd {
 	return func() tea.Msg {
-		response, err := m.agent.GetResponse(context.Background(), input)
+		response, err := m.agent.GetResponse(context.Background(), m.messages)
 		if err != nil {
 			return ErrorMsg(fmt.Sprintf("Error: %v", err))
 		}
+
 		return AIResponseMsg(response)
 	}
 }
@@ -252,7 +254,6 @@ func (m *ChatModel) executeCommand(command string) tea.Cmd {
 	return func() tea.Msg {
 		cmd := exec.Command("sh", "-c", command)
 		output, err := cmd.CombinedOutput()
-
 		if err != nil {
 			return CommandOutputMsg(fmt.Sprintf("Error executing command: %v\n%s", err, output))
 		}
@@ -268,10 +269,14 @@ func (m *ChatModel) updateViewportContent() tea.Cmd {
 		for _, msg := range m.messages {
 			switch msg.Role {
 			case domain.RoleUser:
-				content.WriteString(UserStyle.Render("You: ") + msg.Content + "\n\n")
+				content.WriteString(UserStyle.Render("You:\n") + msg.Content + "\n\n")
 			case domain.RoleAssistant:
-				rendered, _ := m.renderer.Render(AssistantStyle.Render("AI: ") + msg.Content)
-				content.WriteString(rendered + "\n\n")
+				rendered, err := m.renderer.Render(msg.Content)
+				if err != nil {
+					content.WriteString(AssistantStyle.Render("How:\n") + msg.Content + "\n\n")
+				}
+
+				content.WriteString(AssistantStyle.Render("How:\n") + rendered + "\n\n")
 			case domain.RoleSystem:
 				content.WriteString(msg.Content + "\n\n")
 			}
