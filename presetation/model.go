@@ -219,8 +219,8 @@ func (m *ChatModel) View() string {
 		return "Initializing..."
 	}
 
-	s := TitleStyle.Render("Terminal AI Chat") + "\n"
-	s += InfoStyle.Render("Type your question or use 'run:' prefix to execute a command.") + "\n\n"
+	s := TitleStyle.Render("How - Terminal AI Assistant") + "\n"
+	s += InfoStyle.Render("Type your question to get an answer or request help to How assistant") + "\n\n"
 
 	if m.error != "" {
 		s += ErrorStyle.Render("Error: "+m.error) + "\n\n"
@@ -269,14 +269,14 @@ func (m *ChatModel) updateViewportContent() tea.Cmd {
 		for _, msg := range m.messages {
 			switch msg.Role {
 			case domain.RoleUser:
-				content.WriteString(UserStyle.Render("You:\n") + msg.Content + "\n\n")
+				content.WriteString(UserStyle.Render("You: ") + msg.Content + "\n")
 			case domain.RoleAssistant:
 				rendered, err := m.renderer.Render(msg.Content)
 				if err != nil {
-					content.WriteString(AssistantStyle.Render("How:\n") + msg.Content + "\n\n")
+					content.WriteString(AssistantStyle.Render("How: ") + msg.Content + "\n")
 				}
 
-				content.WriteString(AssistantStyle.Render("How:\n") + rendered + "\n\n")
+				content.WriteString(AssistantStyle.Render("How: ") + rendered + "\n")
 			case domain.RoleSystem:
 				content.WriteString(msg.Content + "\n\n")
 			}

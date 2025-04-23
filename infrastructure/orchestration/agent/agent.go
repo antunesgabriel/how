@@ -52,6 +52,42 @@ func (a *Agent) GetResponse(ctx context.Context, messages []domain.Message) (str
 	return outMessage.Content, nil
 }
 
+func (a *Agent) GetStreamResponse(
+	ctx context.Context,
+	messages []domain.Message,
+) (domain.StreamResponse, error) {
+	msgs := make([]*schema.Message, len(messages))
+
+	for idx, msg := range messages {
+		switch msg.Role {
+		case domain.RoleUser:
+			msgs[idx] = &schema.Message{
+				Role:    schema.User,
+				Content: msg.Content,
+			}
+		case domain.RoleAssistant:
+			msgs[idx] = &schema.Message{
+				Role:    schema.Assistant,
+				Content: msg.Content,
+			}
+		default:
+			msgs[idx] = &schema.Message{
+				Role:    schema.System,
+				Content: msg.Content,
+			}
+		}
+	}
+
+	var msgReader *schema.StreamReader[*schema.Message]
+
+	msgReader, err := a.agent.Stream(ctx, msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewAgentStreamResponse(msgReader), nil
+}
+
 func NewAgent(
 	ctx context.Context,
 	toolCallingChatModel einomodel.ToolCallingChatModel,
