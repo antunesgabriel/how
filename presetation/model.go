@@ -32,6 +32,8 @@ type ChatModel struct {
 	initialQuery   string
 }
 
+var streamResponse domain.StreamResponse
+
 func NewChatModel(agent domain.Agent) *ChatModel {
 	ti := textinput.New()
 	ti.Placeholder = "Ask a question or type a command with 'run:' prefix..."
@@ -102,6 +104,10 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		case tea.KeyEnter:
+			if m.waitingForAI {
+				return m, nil
+			}
+
 			if m.confirmMode {
 				input := strings.ToLower(m.textInput.Value())
 				m.confirmMode = false
@@ -146,7 +152,7 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput.SetValue("")
 			m.waitingForAI = true
 
-			cmds = append(cmds, m.updateViewportContent())
+			cmds = append(cmds, m.updateViewportContentWithStream())
 			cmds = append(cmds, m.getAIResponse())
 
 			return m, tea.Batch(cmds...)
@@ -177,11 +183,14 @@ func (m *ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case AIResponseMsg:
 		m.waitingForAI = false
-		m.messages = append(m.messages, domain.Message{
-			Role:    domain.RoleAssistant,
-			Content: string(msg),
-		})
+		streamResponse = nil
+
 		return m, m.updateViewportContent()
+
+	case StreamAIResponseMsg:
+		cmds = append(cmds, m.updateViewportContentWithStream(), m.checkStreamResponse())
+
+		return m, tea.Batch(cmds...)
 
 	case CommandOutputMsg:
 		m.messages = append(m.messages, domain.Message{
@@ -241,12 +250,41 @@ func (m *ChatModel) View() string {
 
 func (m *ChatModel) getAIResponse() tea.Cmd {
 	return func() tea.Msg {
-		response, err := m.agent.GetResponse(context.Background(), m.messages)
+		response, err := m.agent.GetStreamResponse(context.Background(), m.messages)
 		if err != nil {
 			return ErrorMsg(fmt.Sprintf("Error: %v", err))
 		}
 
-		return AIResponseMsg(response)
+		m.messages = append(m.messages, domain.Message{Role: domain.RoleAssistant, Content: ""})
+
+		streamResponse = response
+
+		return StreamAIResponseMsg("stream_response")
+	}
+}
+
+func (m *ChatModel) checkStreamResponse() tea.Cmd {
+	return func() tea.Msg {
+
+		if streamResponse == nil {
+			return ErrorMsg("checkStreamResponse: Stream response is nil")
+		}
+
+		content, finished, err := streamResponse.Content()
+		if err != nil {
+			return ErrorMsg(fmt.Sprintf("Error: %v", err))
+		}
+
+		if finished {
+			lastIndex := len(m.messages) - 1
+			m.messages[lastIndex].Content = string(content)
+			return AIResponseMsg("stream_finished")
+		}
+
+		lastIndex := len(m.messages) - 1
+		m.messages[lastIndex].Content = string(content)
+
+		return StreamAIResponseMsg("stream_response")
 	}
 }
 
@@ -277,6 +315,25 @@ func (m *ChatModel) updateViewportContent() tea.Cmd {
 				}
 
 				content.WriteString(AssistantStyle.Render("How: ") + rendered + "\n")
+			case domain.RoleSystem:
+				content.WriteString(msg.Content + "\n\n")
+			}
+		}
+
+		return ViewportContentMsg(content.String())
+	}
+}
+
+func (m *ChatModel) updateViewportContentWithStream() tea.Cmd {
+	return func() tea.Msg {
+		var content strings.Builder
+
+		for _, msg := range m.messages {
+			switch msg.Role {
+			case domain.RoleUser:
+				content.WriteString(UserStyle.Render("You: ") + msg.Content + "\n")
+			case domain.RoleAssistant:
+				content.WriteString(AssistantStyle.Render("How: ") + msg.Content + "\n")
 			case domain.RoleSystem:
 				content.WriteString(msg.Content + "\n\n")
 			}
