@@ -1,7 +1,6 @@
 package presetation
 
 import (
-	"context"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -241,12 +240,12 @@ func (m *ChatModel) View() string {
 
 func (m *ChatModel) getAIResponse() tea.Cmd {
 	return func() tea.Msg {
-		response, err := m.agent.GetResponse(context.Background(), m.messages)
+		err := m.agent.Ask("")
 		if err != nil {
 			return ErrorMsg(fmt.Sprintf("Error: %v", err))
 		}
 
-		return AIResponseMsg(response)
+		return nil
 	}
 }
 
