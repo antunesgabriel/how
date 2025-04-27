@@ -12,7 +12,7 @@ import (
 	"github.com/antunesgabriel/how/config"
 	"github.com/antunesgabriel/how/infrastructure/orchestration/agent"
 	llmodel "github.com/antunesgabriel/how/infrastructure/orchestration/model"
-	"github.com/antunesgabriel/how/presetation"
+	"github.com/antunesgabriel/how/presetation/cli"
 )
 
 var (
@@ -106,8 +106,17 @@ func startApp(ctx context.Context, query string) error {
 		return fmt.Errorf("unsupported provider: %s", cfg.DefaultProvider)
 	}
 
+	if err != nil {
+		return fmt.Errorf("failed to initialize model: %w", err)
+	}
+
 	llmAgent, err := agent.NewAgent(ctx, chatModel)
-	if err := presetation.StartApp(llmAgent, query); err != nil {
+	if err != nil {
+		return fmt.Errorf("failed to initialize agent: %w", err)
+	}
+
+	// Use the new CLI implementation
+	if err := cli.StartCLI(llmAgent, query); err != nil {
 		return err
 	}
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/cloudwego/eino-ext/components/tool/duckduckgo"
 	einomodel "github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/compose"
@@ -26,9 +27,18 @@ func NewAgent(
 	ctx context.Context,
 	toolCallingChatModel einomodel.ToolCallingChatModel,
 ) (domain.Agent, error) {
-	// TODO: add tools to assitant
+	searchOnWeb, err := duckduckgo.NewTool(ctx, &duckduckgo.Config{
+		ToolName:   "search_on_web",
+		MaxResults: 3,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	toolsConfig := compose.ToolsNodeConfig{
-		Tools: []tool.BaseTool{},
+		Tools: []tool.BaseTool{
+			searchOnWeb,
+		},
 	}
 
 	agent, err := react.NewAgent(ctx, &react.AgentConfig{

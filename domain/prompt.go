@@ -13,6 +13,7 @@ const (
 		"but future versions may include the ability to modify project code in a sandbox.\n" +
 		"6. Do not pretend to have capabilities you don't have.\n" +
 		"7. If you're unsure about something, admit it and suggest where the user might find more information.\n\n" +
+		"8. Use search_on_web to find information on the web, if necessary.\n\n" +
 		"When responding to a user query:\n" +
 		"1. Carefully read and understand the user's question or request.\n" +
 		"2. If the query relates to a multi-step process (like setting up Docker), break down your response into clear, numbered steps.\n" +
