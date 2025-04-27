@@ -13,6 +13,7 @@ import (
 	"github.com/antunesgabriel/how/domain"
 )
 
+// Model represents the main CLI application model
 type Model struct {
 	// State
 	mode          Mode
@@ -36,6 +37,7 @@ type Model struct {
 	height   int
 }
 
+// NewModel creates a new CLI model
 func NewModel(agent domain.Agent) *Model {
 	ti := textinput.New()
 	ti.Placeholder = "Ask me something..."
@@ -74,10 +76,12 @@ func NewModel(agent domain.Agent) *Model {
 	}
 }
 
+// SetInitialQuery sets an initial query to be processed on startup
 func (m *Model) SetInitialQuery(query string) {
 	m.initialQuery = query
 }
 
+// Init initializes the model
 func (m *Model) Init() tea.Cmd {
 	cmds := []tea.Cmd{textinput.Blink, m.spinner.Tick}
 
@@ -94,6 +98,7 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// Update handles all UI updates
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		tiCmd tea.Cmd
@@ -133,8 +138,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.waitingForAI = true
 			m.streamBuffer = ""
 
-			cmds = append(cmds, m.updateViewportContent())
-			cmds = append(cmds, m.getAIResponse(input))
+			cmds = append(cmds, tea.Println(input), m.getAIResponse(input), m.receiveAIResponse())
 
 			return m, tea.Batch(cmds...)
 
@@ -192,6 +196,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case PartialOutputMsg:
 		m.streamBuffer += string(msg)
 		return m, m.updateStreamContent()
+	case domain.ChatOutput:
+		if msg.IsLast() {
+			m.streamBuffer = ""
+			m.waitingForAI = false
+			m.messages = append(m.messages, domain.Message{
+				Role:    domain.RoleAssistant,
+				Content: string(msg.GetContent()),
+			})
+			return m, tea.Batch(m.updateStreamContent(), m.receiveAIResponse())
+		} else {
+			return m, m.receiveAIResponse()
+		}
 
 	case ErrorMsg:
 		m.waitingForAI = false
@@ -257,25 +273,17 @@ func (m *Model) getAIResponse(query string) tea.Cmd {
 			return ErrorMsg(fmt.Sprintf("Error: %v", err))
 		}
 
-		return m.receiveAIResponse()()
+		return nil
 	}
 }
 
 func (m *Model) receiveAIResponse() tea.Cmd {
 	return func() tea.Msg {
 		output := <-m.agent.GetChannel()
+		m.streamBuffer += output.GetContent()
+		m.waitingForAI = !output.IsLast()
 
-		if output.IsLast() {
-			m.waitingForAI = false
-			return ChatOutputMsg(m.streamBuffer)
-		}
-
-		return tea.Batch(
-			m.receiveAIResponse(),
-			func() tea.Msg {
-				return PartialOutputMsg(output.GetContent())
-			},
-		)()
+		return output
 	}
 }
 
