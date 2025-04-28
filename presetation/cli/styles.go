@@ -4,18 +4,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Mode represents the CLI mode (Chat or Exec)
-type Mode int
-
-const (
-	// ChatMode is for asking questions
-	ChatMode Mode = iota
-
-	// ExecMode is for executing commands (not implemented yet)
-	ExecMode
-)
-
-// UI Styles
 var (
 	// TitleStyle is used for the application title
 	TitleStyle = lipgloss.NewStyle().
@@ -28,7 +16,7 @@ var (
 			Foreground(lipgloss.Color("#9A9A9A")).
 			MarginLeft(2)
 
-	// PromptStyle is used for the input prompt
+	// PromptStyle is used for the prompt
 	PromptStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#04B575")).
 			MarginLeft(2)
@@ -40,31 +28,29 @@ var (
 
 	// UserStyle is used for user messages
 	UserStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#04B575")).
-			Bold(true)
+			Foreground(lipgloss.Color("#04B575"))
 
 	// AssistantStyle is used for assistant messages
 	AssistantStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF75B5")).
-			Bold(true)
+			Foreground(lipgloss.Color("#FF75B5"))
 
 	// SystemStyle is used for system messages
 	SystemStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#9A9A9A"))
 
-	// SpinnerStyle is used for the loading spinner
+	// SpinnerStyle is used for the spinner
 	SpinnerStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF75B5"))
 
-	// ChatModeStyle is used to indicate chat mode
+	// ChatModeStyle is used for the chat mode indicator
 	ChatModeStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFFFF")).
-			Background(lipgloss.Color("#04B575")).
+			Background(lipgloss.Color("#66b3ff")).
 			Padding(0, 1)
 
-	// ExecModeStyle is used to indicate exec mode
+	// ExecModeStyle is used for the exec mode indicator
 	ExecModeStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFFFF")).
-			Background(lipgloss.Color("#FF75B5")).
+			Background(lipgloss.Color("#ffa657")).
 			Padding(0, 1)
 )

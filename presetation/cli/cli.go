@@ -10,18 +10,15 @@ import (
 	"github.com/antunesgabriel/how/domain"
 )
 
+// StartCLI starts the CLI application
 func StartCLI(agent domain.Agent, initialQuery string) error {
 	if !term.IsTerminal(int(os.Stdin.Fd())) {
 		return fmt.Errorf("this program requires an interactive terminal")
 	}
 
-	model := NewModel(agent)
+	ui := NewUi(agent, initialQuery)
+	p := tea.NewProgram(ui, tea.WithAltScreen())
 
-	if initialQuery != "" {
-		model.SetInitialQuery(initialQuery)
-	}
-
-	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("error running program: %w", err)
 	}
