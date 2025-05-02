@@ -7,12 +7,13 @@ import (
 	"slices"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	einomodel "github.com/cloudwego/eino/components/model"
 
 	"github.com/antunesgabriel/how/config"
 	"github.com/antunesgabriel/how/infrastructure/orchestration/agent"
 	llmodel "github.com/antunesgabriel/how/infrastructure/orchestration/model"
-	"github.com/antunesgabriel/how/presetation/cli"
+	"github.com/antunesgabriel/how/presetation/tui"
 )
 
 var (
@@ -115,9 +116,11 @@ func startApp(ctx context.Context, query string) error {
 		return fmt.Errorf("failed to initialize agent: %w", err)
 	}
 
-	// Use the new CLI implementation
-	if err := cli.StartCLI(llmAgent, query); err != nil {
-		return err
+	tuiModel := tui.NewModel(llmAgent, "")
+	program := tea.NewProgram(tuiModel, tea.WithAltScreen())
+
+	if _, err := program.Run(); err != nil {
+		return fmt.Errorf("error running program: %w", err)
 	}
 
 	return nil
