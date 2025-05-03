@@ -32,16 +32,17 @@ func (m *model) View() string {
 		welcomeTitle = WelcomeTitleStyle.Foreground(lipgloss.Color(ChatModeColor)).Render(welcomeTitleText)
 	}
 
-	welcomeSubtitle := WelcomeSubtitleStyle.Render("Press Tab to change assistant mode\nUse /config to open config menu\ncwd: Users/you/projects/todo")
+	welcomeSubtitle := WelcomeSubtitleStyle.Render("- Press Tab to change assistant mode\n\n- Use /config to open config menu\n\n\ncwd: Users/you/projects/todo")
 
 	welcomeBox := WelcomeBoxStyle.
 		BorderForeground(lipgloss.Color(borderColor)).
 		Width(60).
+		MarginBottom(3).
 		Render(lipgloss.JoinVertical(lipgloss.Left, welcomeTitle, "", welcomeSubtitle))
 
 	welcomeContainer := lipgloss.NewStyle().
 		Width(contentWidth).
-		Align(lipgloss.Center).
+		Align(lipgloss.Left).
 		Render(welcomeBox)
 
 	footer := WelcomeFooterStyle.
@@ -53,6 +54,8 @@ func (m *model) View() string {
 		BorderForeground(lipgloss.Color(borderColor)).
 		Width(contentWidth).
 		Render(m.prompt.Render())
+
+	mainContainer := lipgloss.NewStyle().Height(m.height).Width(m.width).Padding(0, 1)
 
 	var mainLayout string
 	if m.height > 0 {
@@ -79,5 +82,5 @@ func (m *model) View() string {
 		)
 	}
 
-	return mainLayout
+	return mainContainer.Render(mainLayout)
 }
