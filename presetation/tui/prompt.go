@@ -38,11 +38,11 @@ func (p *prompt) Render() string {
 
 	switch p.modeFeedback {
 	case ExecPromptLeading:
-		modeStyle = modeStyle.Foreground(lipgloss.Color("#fab387"))
-		inputStyle = inputStyle.Foreground(lipgloss.Color("#fab387")).Padding(0, 2).MaxWidth(20)
+		modeStyle = modeStyle.Foreground(lipgloss.Color(ExecModeColor))
+		inputStyle = PromptExecModeStyle
 	case ChatPromptLeading:
-		modeStyle = modeStyle.Foreground(lipgloss.Color("#89dceb"))
-		inputStyle = inputStyle.Foreground(lipgloss.Color("#89dceb")).Padding(0, 2).MaxWidth(20)
+		modeStyle = modeStyle.Foreground(lipgloss.Color(ChatModeColor))
+		inputStyle = PromptChatModeStyle
 	}
 
 	return fmt.Sprintf(
