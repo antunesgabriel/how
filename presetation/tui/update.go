@@ -7,6 +7,10 @@ import (
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch message := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = message.Width
+		m.height = message.Height
+		return m, nil
 	case tea.KeyMsg:
 		switch message.String() {
 
@@ -17,6 +21,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case tea.KeyUp.String(), "k":
+			return m, nil
+
+		case tea.KeyTab.String():
+			if m.prompt.modeFeedback == ChatPromptLeading {
+				m.prompt.UseExecMode()
+			} else {
+				m.prompt.UseChatMode()
+			}
 			return m, nil
 
 		case tea.KeyEnter.String():

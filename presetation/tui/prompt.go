@@ -11,8 +11,8 @@ import (
 type PromptLeading string
 
 const (
-	ExecPromptLeading PromptLeading = "🚀 >"
-	ChatPromptLeading PromptLeading = "💬 >"
+	ExecPromptLeading PromptLeading = "exec"
+	ChatPromptLeading PromptLeading = "chat"
 )
 
 type prompt struct {
@@ -24,7 +24,6 @@ func NewPrompt(placeholder string) *prompt {
 	i := textinput.New()
 	i.Placeholder = placeholder
 	i.Focus()
-	i.Width = 20
 
 	return &prompt{
 		input:        i,
@@ -33,21 +32,23 @@ func NewPrompt(placeholder string) *prompt {
 }
 
 func (p *prompt) Render() string {
-	modeStyle := lipgloss.NewStyle()
 	inputStyle := lipgloss.NewStyle()
 
 	switch p.modeFeedback {
 	case ExecPromptLeading:
-		modeStyle = modeStyle.Foreground(lipgloss.Color(ExecModeColor))
 		inputStyle = PromptExecModeStyle
 	case ChatPromptLeading:
-		modeStyle = modeStyle.Foreground(lipgloss.Color(ChatModeColor))
 		inputStyle = PromptChatModeStyle
 	}
 
+	promptStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(ChatModeColor))
+	if p.modeFeedback == ExecPromptLeading {
+		promptStyle = promptStyle.Foreground(lipgloss.Color(ExecModeColor))
+	}
+
 	return fmt.Sprintf(
-		"%s%s",
-		modeStyle.Render(string(p.modeFeedback)),
+		"%s %s",
+		promptStyle.Render(">"),
 		inputStyle.Render(p.input.Value()),
 	)
 }

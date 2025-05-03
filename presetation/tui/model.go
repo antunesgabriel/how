@@ -9,6 +9,8 @@ type model struct {
 	currentQuery string
 	streaming    bool
 	prompt       *prompt
+	width        int
+	height       int
 }
 
 func NewModel(a domain.Agent, initialQuery string) *model {
@@ -16,10 +18,13 @@ func NewModel(a domain.Agent, initialQuery string) *model {
 
 	p.Focus()
 
+	// Set initial dimensions, but these will be updated by WindowSizeMsg
 	return &model{
 		agent:        a,
 		currentQuery: initialQuery,
 		streaming:    false,
 		prompt:       p,
+		width:        80,
+		height:       24,
 	}
 }

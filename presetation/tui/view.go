@@ -5,13 +5,79 @@ import (
 )
 
 func (m *model) View() string {
-	title := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#eba0ac")).
-		Render("** Welcome to How AI **")
+	width := m.width
+	if width < 80 {
+		width = 80
+	}
 
-	help := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#6c7086")).
-		Render("Use Esc or Ctrl+C to exit")
+	borderColor := ChatModeColor
+	if m.prompt.modeFeedback == ExecPromptLeading {
+		borderColor = ExecModeColor
+	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, title, m.prompt.Render(), help)
+	contentWidth := width - 4
+
+	welcomeTitleText := " Welcome to How AI - Beta, your terminal assistant!"
+	if m.prompt.modeFeedback == ExecPromptLeading {
+		welcomeTitleText = ExecIcon + welcomeTitleText
+	} else {
+		welcomeTitleText = ChatIcon + welcomeTitleText
+	}
+
+	welcomeTitle := ""
+
+	if m.prompt.modeFeedback == ExecPromptLeading {
+		welcomeTitle = WelcomeTitleStyle.Foreground(lipgloss.Color(ExecModeColor)).Render(welcomeTitleText)
+	} else {
+		welcomeTitle = WelcomeTitleStyle.Foreground(lipgloss.Color(ChatModeColor)).Render(welcomeTitleText)
+	}
+
+	welcomeSubtitle := WelcomeSubtitleStyle.Render("Press Tab to change assistant mode\nUse /config to open config menu\ncwd: Users/you/projects/todo")
+
+	welcomeBox := WelcomeBoxStyle.
+		BorderForeground(lipgloss.Color(borderColor)).
+		Width(60).
+		Render(lipgloss.JoinVertical(lipgloss.Left, welcomeTitle, "", welcomeSubtitle))
+
+	welcomeContainer := lipgloss.NewStyle().
+		Width(contentWidth).
+		Align(lipgloss.Center).
+		Render(welcomeBox)
+
+	footer := WelcomeFooterStyle.
+		Width(contentWidth).
+		MarginBottom(2).
+		Render("Use ? for open shortcuts")
+
+	promptBox := PromptBoxStyle.
+		BorderForeground(lipgloss.Color(borderColor)).
+		Width(contentWidth).
+		Render(m.prompt.Render())
+
+	var mainLayout string
+	if m.height > 0 {
+		promptAndFooterHeight := 8
+
+		mainLayout = lipgloss.JoinVertical(
+			lipgloss.Left,
+			lipgloss.PlaceVertical(
+				m.height-promptAndFooterHeight,
+				lipgloss.Bottom,
+				welcomeContainer,
+			),
+			promptBox,
+			"",
+			footer,
+		)
+	} else {
+		mainLayout = lipgloss.JoinVertical(
+			lipgloss.Left,
+			welcomeContainer,
+			promptBox,
+			"",
+			footer,
+		)
+	}
+
+	return mainLayout
 }
