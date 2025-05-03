@@ -48,7 +48,7 @@ func (m *model) View() string {
 	footer := WelcomeFooterStyle.
 		Width(contentWidth).
 		MarginBottom(2).
-		Render("Use ? for open shortcuts")
+		Render("Use ? for open shortcuts and Tab for change mode")
 
 	promptBox := PromptBoxStyle.
 		BorderForeground(lipgloss.Color(borderColor)).
@@ -58,21 +58,8 @@ func (m *model) View() string {
 	mainContainer := lipgloss.NewStyle().Height(m.height).Width(m.width).Padding(0, 1)
 
 	var mainLayout string
-	if m.height > 0 {
-		promptAndFooterHeight := 8
 
-		mainLayout = lipgloss.JoinVertical(
-			lipgloss.Left,
-			lipgloss.PlaceVertical(
-				m.height-promptAndFooterHeight,
-				lipgloss.Bottom,
-				welcomeContainer,
-			),
-			promptBox,
-			"",
-			footer,
-		)
-	} else {
+	if m.height == 0 {
 		mainLayout = lipgloss.JoinVertical(
 			lipgloss.Left,
 			welcomeContainer,
@@ -80,7 +67,23 @@ func (m *model) View() string {
 			"",
 			footer,
 		)
+
+		return mainContainer.Render(mainLayout)
 	}
+
+	promptAndFooterHeight := 8
+
+	mainLayout = lipgloss.JoinVertical(
+		lipgloss.Left,
+		lipgloss.PlaceVertical(
+			m.height-promptAndFooterHeight,
+			lipgloss.Bottom,
+			welcomeContainer,
+		),
+		promptBox,
+		"",
+		footer,
+	)
 
 	return mainContainer.Render(mainLayout)
 }
