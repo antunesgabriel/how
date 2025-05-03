@@ -31,7 +31,7 @@ func NewPrompt(placeholder string) *prompt {
 	}
 }
 
-func (p *prompt) Render() string {
+func (p *prompt) Render(leading string) string {
 	inputStyle := lipgloss.NewStyle()
 
 	switch p.modeFeedback {
@@ -48,7 +48,7 @@ func (p *prompt) Render() string {
 
 	return fmt.Sprintf(
 		"%s %s",
-		promptStyle.Render(">"),
+		promptStyle.Render(leading),
 		inputStyle.Render(p.input.Value()),
 	)
 }

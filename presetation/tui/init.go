@@ -6,5 +6,8 @@ import (
 )
 
 func (m *model) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(
+		textinput.Blink,
+		m.spinner.Tick,
+	)
 }

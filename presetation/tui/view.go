@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -48,42 +50,49 @@ func (m *model) View() string {
 	footer := WelcomeFooterStyle.
 		Width(contentWidth).
 		MarginBottom(2).
-		Render("Use ? for open shortcuts and Tab for change mode")
+		Render(fmt.Sprintf("Use ? for open shortcuts and Tab for change mode %s", m.spinner.View()))
+
+	promptLeading := ">"
+
+	if m.streaming {
+		promptLeading = m.spinner.View()
+	}
 
 	promptBox := PromptBoxStyle.
 		BorderForeground(lipgloss.Color(borderColor)).
 		Width(contentWidth).
-		Render(m.prompt.Render())
+		Render(m.prompt.Render(promptLeading))
 
 	mainContainer := lipgloss.NewStyle().Height(m.height).Width(m.width).Padding(0, 1)
 
 	var mainLayout string
-
-	if m.height == 0 {
-		mainLayout = lipgloss.JoinVertical(
-			lipgloss.Left,
-			welcomeContainer,
-			promptBox,
-			"",
-			footer,
-		)
-
-		return mainContainer.Render(mainLayout)
-	}
-
 	promptAndFooterHeight := 8
 
-	mainLayout = lipgloss.JoinVertical(
-		lipgloss.Left,
-		lipgloss.PlaceVertical(
-			m.height-promptAndFooterHeight,
-			lipgloss.Bottom,
-			welcomeContainer,
-		),
-		promptBox,
-		"",
-		footer,
-	)
+	if m.height == 0 {
+		return m.spinner.View()
+	}
+
+	if len(m.agent.GetHistory()) > 0 {
+		mainLayout = lipgloss.JoinVertical(
+			lipgloss.Left,
+			m.viewport.View(),
+			promptBox,
+			"", // error message
+			footer,
+		)
+	} else {
+		mainLayout = lipgloss.JoinVertical(
+			lipgloss.Left,
+			lipgloss.PlaceVertical(
+				m.height-promptAndFooterHeight,
+				lipgloss.Bottom,
+				welcomeContainer,
+			),
+			promptBox,
+			"", // error message
+			footer,
+		)
+	}
 
 	return mainContainer.Render(mainLayout)
 }
