@@ -11,6 +11,7 @@ type model struct {
 	agent              domain.Agent
 	currentQuery       string
 	streaming          bool
+	streamingContent   string
 	prompt             *prompt
 	width              int
 	height             int
@@ -18,6 +19,7 @@ type model struct {
 	spinner            spinner.Model
 	glamourInitialized bool
 	viewport           viewport.Model
+	error              error
 }
 
 func NewModel(a domain.Agent, initialQuery string) *model {
@@ -32,6 +34,7 @@ func NewModel(a domain.Agent, initialQuery string) *model {
 	m := &model{
 		agent:              a,
 		currentQuery:       initialQuery,
+		streamingContent:   "",
 		streaming:          true,
 		prompt:             p,
 		width:              80,

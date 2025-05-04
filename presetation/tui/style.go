@@ -8,6 +8,10 @@ const (
 	WelcomeBoxBorderColor = "#94E2D5"
 	PrimaryTextColor      = "#A6ADC8"
 	SecondaryTextColor    = "#6C7086"
+	TextColor             = "#a6adc8"
+	UserMessageColor      = "#cba6f7"
+	AssistantMessageColor = "#eba0ac"
+	ErrorMessageColor     = "#f38ba8"
 )
 
 const (
@@ -40,4 +44,9 @@ var (
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color(ChatModeColor)).
 			Padding(1, 2)
+
+	UserMessageStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color(UserMessageColor))
+	AssistantMessageStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(AssistantMessageColor))
+	ErrorMessageStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(ErrorMessageColor))
+	MessageStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color(TextColor))
 )
