@@ -29,13 +29,15 @@ func NewModel(a domain.Agent, initialQuery string) *model {
 	s := spinner.New()
 	s.Spinner = spinner.MiniDot
 
-	vp := viewport.New(30, 5)
+	// Initialize viewport with reasonable dimensions
+	vp := viewport.New(80, 20)
+	vp.SetContent("")
 
 	m := &model{
 		agent:              a,
 		currentQuery:       initialQuery,
 		streamingContent:   "",
-		streaming:          true,
+		streaming:          false,
 		prompt:             p,
 		width:              80,
 		height:             24,
@@ -43,6 +45,7 @@ func NewModel(a domain.Agent, initialQuery string) *model {
 		spinner:            s,
 		glamourInitialized: false,
 		viewport:           vp,
+		error:              nil,
 	}
 
 	return m

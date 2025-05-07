@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -49,8 +47,8 @@ func (m *model) View() string {
 
 	footer := WelcomeFooterStyle.
 		Width(contentWidth).
-		MarginBottom(2).
-		Render(fmt.Sprintf("Use ? for open shortcuts and Tab for change mode %s", m.spinner.View()))
+		MarginBottom(0).
+		Render("Use ? for open shortcuts and Tab for change mode")
 
 	promptLeading := ">"
 
@@ -72,24 +70,42 @@ func (m *model) View() string {
 		return m.spinner.View()
 	}
 
+	errorMessage := ""
+	if m.error != nil {
+		errorMessage = m.error.Error()
+	}
+
+	viewportHeight := m.height - promptAndFooterHeight
+
 	if len(m.agent.GetHistory()) > 0 {
+		chat := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color(ChatModeColor)).
+			Width(m.viewport.Width).
+			Height(viewportHeight - 2).
+			Render(m.RenderHistory())
+
 		mainLayout = lipgloss.JoinVertical(
 			lipgloss.Left,
-			m.viewport.View(),
+			lipgloss.PlaceVertical(
+				viewportHeight,
+				lipgloss.Bottom,
+				chat,
+			),
 			promptBox,
-			"", // error message
+			ErrorMessageStyle.Render(errorMessage),
 			footer,
 		)
 	} else {
 		mainLayout = lipgloss.JoinVertical(
 			lipgloss.Left,
 			lipgloss.PlaceVertical(
-				m.height-promptAndFooterHeight,
+				viewportHeight,
 				lipgloss.Bottom,
 				welcomeContainer,
 			),
 			promptBox,
-			"", // error message
+			ErrorMessageStyle.Render(errorMessage),
 			footer,
 		)
 	}
